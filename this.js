@@ -29,23 +29,65 @@
 
 // Principle 1
 // code example for Window Binding
-const globalBinding = this
-function testGlobal() {
-  return globalBinding
-  //if(globalBinding === this) return 'true!'
+// In the REPL:
+this === global // => true
+function testContext() { return this }
+testContext() === global // => true
+/* However, "this" has a different meaning from
+ * inside a node file, because "this" refers to
+ * `module.exports`, which right now is an empty object: */
 
-}
-console.log(testGlobal())
-console.log(globalBinding)
+function testFileContext() { return this }
+console.log(this === module.exports)       // => true
+console.log(testFileContext() === global)  // => true
+
 
 // Principle 2
-
 // code example for Implicit Binding
+const newObject = {
+  someProp: 'someValue',
+  someMethod: function() { return this }
+}
+
+console.log(
+  newObject.someMethod()
+) // => { someProp: 'someValue', someMethod: [Function: someMethod] }
+
 
 // Principle 3
-
 // code example for New Binding
+function Dog(attrs) {
+  this.name = attrs.name
+  this.whoAmI = function() { return this }
+}
+const grizzly = new Dog({ name: 'Grizzly' })
+console.log(grizzly.name) // => Grizzly
+console.log(grizzly.whoAmI()) // => Dog { name: 'Grizzly', whoAmI: [Function] }
+
 
 // Principle 4
-
 // code example for Explicit Binding
+class SomeReactComponent extends React.component {
+  // Obviously this code doesn't run, because it includes JSX and possibly
+  // new ES6/7 features that your version of Node might not be able to handle
+  // without Babel!
+  constructor(props) {
+    super(props)
+    // use bind to make sure we have access to the method, no matter where we call
+    // it from inside this class
+    this.handleSomeDomEvent = this.handleSomeDomEvent.bind(this)
+  }
+
+  someFormMethodImGonnaUse(e) {
+    if(somePredicate) this.handleSomeDomEvent(e.target.value)
+  }
+
+  render() {
+    return (
+	<div>
+	    <form onSubmit={this.handleSomeDomEvent(e)} />
+	</div>
+    )
+  }
+}
+
